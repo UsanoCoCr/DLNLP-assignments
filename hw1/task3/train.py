@@ -6,6 +6,7 @@ import MeCab
 import nltk
 from nltk.tokenize import word_tokenize
 import pickle
+from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
 
 mecab = MeCab.Tagger('-Owakati')
 nltk.download('punkt_tab')
@@ -46,6 +47,7 @@ def train_LSTM(dataloader, jpn_vocab_size, eng_vocab_size, embedding_dim, hidden
             optimizer.zero_grad()
             output = model(context, target)
             loss = calculate_loss(output, target, loss_function, device)
+            loss.backward()
             optimizer.step()
             
             if (i+1) % 100 == 0:
@@ -64,21 +66,46 @@ def calculate_loss(prediction, target, loss_function, device):
     loss = loss_function(prediction, target)
     return loss
 
-def evaluate_LSTM(model, dataloader, device):
+def evaluate_LSTM(model, dataloader, device, eng_vocab_size, eng_idx_to_word):
     model.eval()
-    correct = 0
-    total = 0
-    
+
     with torch.no_grad():
+        bleu_score = 0
+        perplexity = 0
         for context, target in dataloader:
             context = context.to(device)
             target = target.to(device)
-            output = model(context)
-            _, predicted = torch.max(output.data, 1)
-            total += target.size(0)
-            correct += (predicted == target).sum().item()
-    
-    print("Accuracy: {}%".format(100 * correct / total))
+            output = model(context, target, teacher_forcing_ratio=0)
+            eval = criterion(output, target, eng_vocab_size, eng_idx_to_word)
+            bleu_score += eval[0]
+            perplexity += eval[1]
+        
+        bleu_score /= len(dataloader)
+        perplexity /= len(dataloader)
+        print("BLEU Score: {:.4f}, Perplexity: {:.4f}".format(bleu_score, perplexity))
+
+import torch.nn.functional as F
+def criterion(output, target, vocab_size, index_to_word):
+    # output = [seq_len, bsz, vocab_size]
+    # target = [seq_len, bsz]
+    output_p = output.view(-1, vocab_size)
+    target_p = target.view(-1)
+    loss = F.cross_entropy(output_p, target_p)
+    perplexity = torch.exp(loss)
+
+    _, predicted_indices = torch.max(output, dim=2)
+    predicted_indices = predicted_indices.permute(1, 0) # [bsz, seq_len]
+    target = target.permute(1, 0) # [bsz, seq_len]
+    bleu_score = 0
+    for i in range(predicted_indices.size(0)):
+        predicted_sentence = [index_to_word[idx.item()] for idx in predicted_indices[i]]
+        target_sentence = [index_to_word[idx.item()] for idx in target[i]]
+        print("Predicted: ", predicted_sentence)
+        print("Target: ", target_sentence)
+        bleu_score += sentence_bleu([target_sentence], predicted_sentence, smoothing_function=SmoothingFunction().method4)
+    bleu_score /= predicted_indices.size(0)
+    return bleu_score, perplexity
+
 
 def load_data(src_file, trg_file):
     with open(src_file, 'r', encoding='utf-8') as file:
@@ -127,4 +154,10 @@ if __name__ == "__main__":
                        num_epochs=10, 
                        learning_rate=0.001, 
                        device=device)
-    evaluate_LSTM(model, test_loader, device=device)
+    
+    """ model = seq2seq(encoder_LSTM(jpn_vocab_size, 256, 512, 1, False), 
+                    decoder_LSTM(eng_vocab_size, 256, 512, 512, 1), 
+                    device)
+    model.to(device)
+    model.load_state_dict(torch.load('lstm_model.ckpt')) """
+    evaluate_LSTM(model, test_loader, device, eng_vocab_size, eng_idx_to_word)

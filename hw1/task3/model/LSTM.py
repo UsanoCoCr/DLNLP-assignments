@@ -85,15 +85,17 @@ class seq2seq(torch.nn.Module):
         trg_vocab_size = self.decoder.linear.out_features
 
         outputs = torch.zeros(trg_len, bsz, trg_vocab_size).to(self.device)
-        input = target[0, :] # input = [bsz]
+        input = torch.zeros(bsz).long().to(self.device) # input = [bsz]
+        decoder_layer = self.decoder.lstm.num_layers
         hidden = hidden.unsqueeze(0) # hidden = [1, bsz, dim]
+        hidden = hidden.repeat(decoder_layer, 1, 1)
         cell = cell.unsqueeze(0) # cell = [1, bsz, dim]
+        cell = cell.repeat(decoder_layer, 1, 1)
         
-        for t in range(1, trg_len):
+        for t in range(0, trg_len):
             output, hidden, cell = self.decoder(input, encoder_output, hidden, cell) # output = [1, bsz, vocab_size]
             outputs[t] = output.squeeze(0)
             teacher_force = random.random() < teacher_forcing_ratio
             top1 = output.argmax(2) # top1 = [1, bsz]
             input = target[t] if teacher_force else top1.squeeze(0) # input = [bsz]
-        
         return outputs
