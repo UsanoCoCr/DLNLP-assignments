@@ -95,5 +95,5 @@ class seq2seq(torch.nn.Module):
             teacher_force = random.random() < teacher_forcing_ratio
             top1 = output.argmax(2) # top1 = [1, bsz]
             input = target[t] if teacher_force else top1.squeeze(0) # input = [bsz]
-
+        
         return outputs
