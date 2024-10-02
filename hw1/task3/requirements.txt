@@ -1,0 +1,6 @@
+numpy
+mecab
+unidic-lite
+nltk
+pickle
+random

@@ -1,0 +1,6 @@
+on training data:
+    cbow_eng_model: 58.24480794886601%
+    cbow_jpn_model: 61.62133389463799%
+on evaluating data:
+    cbow_eng_model: 43.70779619398404%
+    cbow_jpn_model: 48.292264630219876%
