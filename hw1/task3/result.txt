@@ -4,3 +4,5 @@ on training data:
 on evaluating data:
     cbow_eng_model: 43.70779619398404%
     cbow_jpn_model: 48.292264630219876%
+
+BLEU Score: 0.6513, Perplexity: 9.0275
