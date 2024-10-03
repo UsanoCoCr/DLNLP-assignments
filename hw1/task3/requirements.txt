@@ -4,3 +4,5 @@ unidic-lite
 nltk
 pickle
 random
+torch
+collections

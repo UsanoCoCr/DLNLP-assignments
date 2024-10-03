@@ -38,7 +38,7 @@ def train_LSTM(dataloader, jpn_vocab_size, eng_vocab_size, embedding_dim, hidden
     model = seq2seq(encoder, decoder, device).to(device)
     model.train()
     loss_function = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=1e-5)
     loss = 0
     for epoch in range(num_epochs):
         for i, (context, target) in enumerate(dataloader):
@@ -101,7 +101,7 @@ def criterion(output, target, vocab_size, index_to_word):
         predicted_sentence = [index_to_word[idx.item()] for idx in predicted_indices[i]]
         target_sentence = [index_to_word[idx.item()] for idx in target[i]]
         print("Predicted: ", predicted_sentence)
-        print("Target: ", target_sentence)
+        # print("Target: ", target_sentence)
         bleu_score += sentence_bleu([target_sentence], predicted_sentence, smoothing_function=SmoothingFunction().method4)
     bleu_score /= predicted_indices.size(0)
     return bleu_score, perplexity
@@ -121,6 +121,7 @@ if __name__ == "__main__":
     train_data = load_data("./dataset/train_jpn.txt", "./dataset/train_eng.txt")
     val_data = load_data("./dataset/val_jpn.txt", "./dataset/val_eng.txt")
     test_data = load_data("./dataset/test_jpn.txt", "./dataset/test_eng.txt")
+    example_data = load_data("./dataset/examples.txt", "./dataset/examples_ans.txt")
 
     with open('cbow_jpn_vocab.pkl', 'rb') as jpn_vocab_file:
         jpn_vocab = pickle.load(jpn_vocab_file)
@@ -139,11 +140,16 @@ if __name__ == "__main__":
     eng_idx_to_word = {i: word for i, word in enumerate(eng_vocab)}
 
     train_dataset = TranslationDataset(train_data, jpn_word_to_idx, eng_word_to_idx)
+    val_dataset = TranslationDataset(val_data, jpn_word_to_idx, eng_word_to_idx)
     test_dataset = TranslationDataset(test_data, jpn_word_to_idx, eng_word_to_idx)
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, collate_fn=collate_fn)
+    val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False, collate_fn=collate_fn)
     test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False, collate_fn=collate_fn)
 
-    model = train_LSTM(dataloader=train_loader, 
+    example_dataset = TranslationDataset(example_data, jpn_word_to_idx, eng_word_to_idx)
+    example_loader = DataLoader(example_dataset, batch_size=1, shuffle=False, collate_fn=collate_fn)
+
+    """ model = train_LSTM(dataloader=train_loader, 
                        jpn_vocab_size=jpn_vocab_size,
                        eng_vocab_size=eng_vocab_size,
                        embedding_dim=256, 
@@ -153,11 +159,12 @@ if __name__ == "__main__":
                        bidirectional=False,
                        num_epochs=10, 
                        learning_rate=0.001, 
-                       device=device)
+                       device=device) """
     
-    """ model = seq2seq(encoder_LSTM(jpn_vocab_size, 256, 512, 1, False), 
+    model = seq2seq(encoder_LSTM(jpn_vocab_size, 256, 512, 1, False), 
                     decoder_LSTM(eng_vocab_size, 256, 512, 512, 1), 
                     device)
     model.to(device)
-    model.load_state_dict(torch.load('lstm_model.ckpt')) """
-    evaluate_LSTM(model, test_loader, device, eng_vocab_size, eng_idx_to_word)
+    model.load_state_dict(torch.load('lstm_model.ckpt'))
+    # evaluate_LSTM(model, test_loader, device, eng_vocab_size, eng_idx_to_word)
+    evaluate_LSTM(model, example_loader, device, eng_vocab_size, eng_idx_to_word)

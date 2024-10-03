@@ -96,7 +96,7 @@ if __name__ == "__main__":
     batch_size = 64
     learning_rate = 0.001
 
-    # model = train_CBOW(train_data, vocab_size, embedding_dim, num_epochs, batch_size, learning_rate, device)
-    model = CBOW(vocab_size, embedding_dim).to(device)
-    model.load_state_dict(torch.load("cbow_" + language + "_model.ckpt"))
+    model = train_CBOW(train_data, vocab_size, embedding_dim, num_epochs, batch_size, learning_rate, device)
+    # model = CBOW(vocab_size, embedding_dim).to(device)
+    # model.load_state_dict(torch.load("cbow_" + language + "_model.ckpt"))
     evaluate_CBOW(model, test_data, batch_size, device)

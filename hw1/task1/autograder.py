@@ -47,10 +47,10 @@ def random_exercises(input_scale):
             char_count[char] = 1
     
     return {
-        'flatten_list': {
-            'function_name': 'flatten_list',
+        'char_count': {
+            'function_name': 'char_count',
             'test_cases': [
-                (flat_list, list(range(1, input_scale + 1))),
+                (random_string, char_count),
             ]
         }
     }
@@ -117,7 +117,7 @@ if __name__ == "__main__":
     # Replace 'submission.py' with the path to the user's submission file.
     submission_file = 'submission.py'
     user_module = load_module(submission_file)
-    exercises = random_exercises(1000)
+    exercises = random_exercises(8000000)
     begin = time.time()
     results = run_tests(user_module, exercises)
     end = time.time()
