@@ -7,9 +7,10 @@ import os
 import numpy as np
 import jieba
 
-vocab = []
+
 
 def get_vocab(filename):
+    vocab = []
     file = open(filename, "r", encoding="utf-8")
     lines = file.readlines()
     text_input = []
@@ -22,7 +23,7 @@ def get_vocab(filename):
             if word not in vocab:
                 vocab.append(word)
     file.close()
-    return text_input, idx_input
+    return text_input, idx_input, vocab
 
 class CNN_Text(nn.Module):
     def __init__(self, vocab_size, embedding_dim, n_filters, filter_sizes, output_dim, dropout):
@@ -96,16 +97,18 @@ if __name__ == "__main__":
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(device)
 
-    train_text, train_idx = get_vocab("train.txt")
-    val_text, val_idx = get_vocab("dev.txt")
-    test_text, test_idx = get_vocab("test.txt")
+    train_text, train_idx,vocab = get_vocab("train.txt")
+    val_text, val_idx, _ = get_vocab("dev.txt")
+    test_text, test_idx, _ = get_vocab("test.txt")
     # train_text += val_text
     # train_idx += val_idx
 
+    vocab.append("<unk>")
+
     word2idx = {word: idx for idx, word in enumerate(vocab)}
-    train_text = [[word2idx[word] for word in text] for text in train_text]
-    val_text = [[word2idx[word] for word in text] for text in val_text]
-    test_text = [[word2idx[word] for word in text] for text in test_text]
+    train_text = [[word2idx[word] if word in word2idx else word2idx["<unk>"] for word in sentence] for sentence in train_text]
+    val_text = [[word2idx[word] if word in word2idx else word2idx["<unk>"] for word in sentence] for sentence in val_text]
+    test_text = [[word2idx[word] if word in word2idx else word2idx["<unk>"] for word in sentence] for sentence in test_text]
 
     train_text_tensors = [torch.tensor(sentence) for sentence in train_text]
     train_text_tensor = pad_sequence(train_text_tensors, batch_first=True, padding_value=0)
@@ -132,8 +135,8 @@ if __name__ == "__main__":
 
     INPUT_DIM = len(vocab)
     EMBEDDING_DIM = 256
-    N_FILTERS = 100
-    FILTER_SIZES = [3,4,5]
+    N_FILTERS = 20
+    FILTER_SIZES = [1,2,3,4,5,6]
     OUTPUT_DIM = 4
     DROPOUT = 0.1
     model = CNN_Text(INPUT_DIM, EMBEDDING_DIM, N_FILTERS, FILTER_SIZES, OUTPUT_DIM, DROPOUT).to(device)

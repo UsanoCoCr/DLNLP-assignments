@@ -25,7 +25,7 @@ class encoder_LSTM(torch.nn.Module):
 class attention(torch.nn.Module):
     def __init__(self, encoder_hidden_dim, decoder_hidden_dim):
         super(attention, self).__init__()
-        self.linear = torch.nn.Linear(encoder_hidden_dim + decoder_hidden_dim, decoder_hidden_dim)
+        self.linear = torch.nn.Linear(2*encoder_hidden_dim + decoder_hidden_dim, decoder_hidden_dim)
         self.v = torch.nn.Linear(decoder_hidden_dim, 1)
 
     def forward(self, decoder_hidden, encoder_outputs):
@@ -43,7 +43,7 @@ class decoder_LSTM(torch.nn.Module):
     def __init__(self, vocab_size, embedding_dim, encoder_hidden_dim, hidden_dim, num_layers):
         super(decoder_LSTM, self).__init__()
         self.embeddings = torch.nn.Embedding(vocab_size, embedding_dim)
-        self.lstm = torch.nn.LSTM(embedding_dim+encoder_hidden_dim, hidden_dim, num_layers=num_layers)
+        self.lstm = torch.nn.LSTM(embedding_dim+2*encoder_hidden_dim, hidden_dim, num_layers=num_layers)
         self.linear = torch.nn.Linear(hidden_dim, vocab_size)
         self.attention = attention(encoder_hidden_dim, hidden_dim)
         self.load_embedding()

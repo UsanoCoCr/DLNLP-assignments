@@ -22,8 +22,8 @@ class TranslationDataset(Dataset):
 
     def __getitem__(self, idx):
         src_sentence, trg_sentence = self.data[idx]
-        src_indices = torch.tensor([self.src_vocab[word] for word in src_sentence], dtype=torch.long)
-        trg_indices = torch.tensor([self.trg_vocab[word] for word in trg_sentence], dtype=torch.long)
+        src_indices = torch.tensor([self.src_vocab[word] if word in self.src_vocab else self.src_vocab["<unk>"] for word in src_sentence], dtype=torch.long)
+        trg_indices = torch.tensor([self.trg_vocab[word] if word in self.trg_vocab else self.trg_vocab["<unk>"] for word in trg_sentence], dtype=torch.long)
         return src_indices, trg_indices
 
 def collate_fn(batch):
@@ -156,15 +156,17 @@ if __name__ == "__main__":
                        hidden_dim=512, 
                        num_layers_encoder=1,
                        num_layers_decoder=1, 
-                       bidirectional=False,
+                       bidirectional=True,
                        num_epochs=10, 
                        learning_rate=0.001, 
                        device=device) """
     
-    model = seq2seq(encoder_LSTM(jpn_vocab_size, 256, 512, 1, False), 
+    model = seq2seq(encoder_LSTM(jpn_vocab_size, 256, 512, 1, True), 
                     decoder_LSTM(eng_vocab_size, 256, 512, 512, 1), 
                     device)
     model.to(device)
     model.load_state_dict(torch.load('lstm_model.ckpt'))
+    # evaluate_LSTM(model, train_loader, device, eng_vocab_size, eng_idx_to_word)
+    # evaluate_LSTM(model, val_loader, device, eng_vocab_size, eng_idx_to_word)
     # evaluate_LSTM(model, test_loader, device, eng_vocab_size, eng_idx_to_word)
     evaluate_LSTM(model, example_loader, device, eng_vocab_size, eng_idx_to_word)

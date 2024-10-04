@@ -44,8 +44,8 @@ def evaluate_CBOW(model, test_data, batch_size, device):
     
     print("Accuracy: {}%".format(100 * correct / total))
 
-vocab = []
 def get_vocab(data):
+    vocab = []
     for context, target in data:
         for word in context:
             if word not in vocab:
@@ -58,7 +58,7 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("Using device: ", device)
 
-    language = 'eng'
+    language = 'jpn'
 
     train_cbow_file = open("./dataset/cbow_" + language + "_dataset/train_cbow.pkl", "rb")
     train_data = pickle.load(train_cbow_file)
@@ -72,9 +72,8 @@ if __name__ == "__main__":
     test_data = pickle.load(test_cbow_file)
     test_cbow_file.close()
 
-    get_vocab(train_data)
-    get_vocab(val_data)
-    get_vocab(test_data)
+    vocab = get_vocab(train_data)
+    vocab.append("<unk>")
     vocab_size = len(vocab)
     print("Vocab size: ", vocab_size)
 
@@ -87,9 +86,9 @@ if __name__ == "__main__":
     word_to_idx = {word: i for i, word in enumerate(vocab)}
     idx_to_word = {i: word for i, word in enumerate(vocab)}
 
-    train_data = [(torch.tensor([word_to_idx[word] for word in context], dtype=torch.long), torch.tensor(word_to_idx[target], dtype=torch.long)) for context, target in train_data]
-    val_data = [(torch.tensor([word_to_idx[word] for word in context], dtype=torch.long), torch.tensor(word_to_idx[target], dtype=torch.long)) for context, target in val_data]
-    test_data = [(torch.tensor([word_to_idx[word] for word in context], dtype=torch.long), torch.tensor(word_to_idx[target], dtype=torch.long)) for context, target in test_data]
+    train_data = [(torch.tensor([word_to_idx[word] if word in word_to_idx else word_to_idx["<unk>"] for word in context]), torch.tensor(word_to_idx[target] if target in word_to_idx else word_to_idx["<unk>"])) for context, target in train_data]
+    val_data = [(torch.tensor([word_to_idx[word] if word in word_to_idx else word_to_idx["<unk>"] for word in context]), torch.tensor(word_to_idx[target] if target in word_to_idx else word_to_idx["<unk>"])) for context, target in val_data]
+    test_data = [(torch.tensor([word_to_idx[word] if word in word_to_idx else word_to_idx["<unk>"] for word in context]), torch.tensor(word_to_idx[target] if target in word_to_idx else word_to_idx["<unk>"])) for context, target in test_data]
 
     embedding_dim = 256
     num_epochs = 10
@@ -99,4 +98,5 @@ if __name__ == "__main__":
     model = train_CBOW(train_data, vocab_size, embedding_dim, num_epochs, batch_size, learning_rate, device)
     # model = CBOW(vocab_size, embedding_dim).to(device)
     # model.load_state_dict(torch.load("cbow_" + language + "_model.ckpt"))
+    evaluate_CBOW(model, train_data, batch_size, device)
     evaluate_CBOW(model, test_data, batch_size, device)
