@@ -6,10 +6,10 @@ on evaluating data:
     cbow_jpn_model: 48.392576892584984%
 
 training data:
-    BLEU Score: 0.8518, Perplexity: 1.9239
+    BLEU Score: 0.5077, Perplexity: 2.4221
 
 validating data:
-    BLEU Score: 0.6476, Perplexity: 8.9583
+    BLEU Score: 0.2779, Perplexity: 5.9132
 
 evaluating data:
-    BLEU Score: 0.6513, Perplexity: 9.0275
+    BLEU Score: 0.2749, Perplexity: 5.9333

@@ -77,11 +77,13 @@ class seq2seq(torch.nn.Module):
         self.decoder = decoder
         self.device = device
         
-    def forward(self, context, target, teacher_forcing_ratio=0.5):
+    def forward(self, context, target, teacher_forcing_ratio=0.5, is_train=True):
         # context = [len_cnt, bsz]
         # target = [len_trg, bsz]
         encoder_output, hidden, cell = self.encoder(context)
         trg_len, bsz = target.shape
+        if not is_train:
+            trg_len = 100
         trg_vocab_size = self.decoder.linear.out_features
 
         outputs = torch.zeros(trg_len, bsz, trg_vocab_size).to(self.device)
