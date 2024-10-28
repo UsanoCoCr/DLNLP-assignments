@@ -1,21 +1,16 @@
 import numpy as np
-import evaluate
+from sklearn.metrics import f1_score, accuracy_score
 
-def compute_metrics(p):
-    # Extract the highest probability predictions
-    predictions = np.argmax(p.predictions, axis=1)
-    # Load the metric for F1 and accuracy evaluation
-    f1_metric = evaluate.load('f1')
-    acc_metric = evaluate.load('accuracy')
-    
-    # Compute micro F1, macro F1, and accuracy
-    micro_f1 = f1_metric.compute(predictions=predictions, references=p.label_ids, average='micro')
-    macro_f1 = f1_metric.compute(predictions=predictions, references=p.label_ids, average='macro')
-    accuracy = acc_metric.compute(predictions=predictions, references=p.label_ids)
-    
-    # Return the computed metrics
+def compute_metrics(eval_pred):
+    logits, labels = eval_pred
+    predictions = np.argmax(logits, axis=-1)
+
+    micro_f1 = f1_score(labels, predictions, average='micro')
+    macro_f1 = f1_score(labels, predictions, average='macro')
+    accuracy = accuracy_score(labels, predictions)
+
     return {
-        "micro_f1": micro_f1['f1'],
-        "macro_f1": macro_f1['f1'],
-        "accuracy": accuracy['accuracy']
+        "micro_f1": micro_f1,
+        "macro_f1": macro_f1,
+        "accuracy": accuracy
     }
