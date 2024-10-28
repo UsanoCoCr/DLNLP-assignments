@@ -48,6 +48,9 @@ class TrainingConfig:
     seed: int = field(default=42, metadata={"help": "Random seed for initialization"})
     report_to: str = field(default="wandb", metadata={"help": "Use Weights & Biases for tracking"})
     run_name: Optional[str] = field(default=None, metadata={"help": "Optional run name for WandB"})
+    save_total_limit: int = field(default=1, metadata={"help": "Limit the total amount of checkpoints."})
+    load_best_model_at_end: bool = field(default=True, metadata={"help": "Whether or not to load the best model found during training at the end."})
+    metric_for_best_model: str = field(default="eval_loss", metadata={"help": "The metric to use to compare two different models."})
 
 # initialize logging, seed, argparse...
 parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingConfig))
