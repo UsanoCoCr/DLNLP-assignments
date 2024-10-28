@@ -51,6 +51,8 @@ class TrainingConfig:
     save_total_limit: int = field(default=1, metadata={"help": "Limit the total amount of checkpoints."})
     load_best_model_at_end: bool = field(default=True, metadata={"help": "Whether or not to load the best model found during training at the end."})
     metric_for_best_model: str = field(default="eval_loss", metadata={"help": "The metric to use to compare two different models."})
+    evaluation_strategy: str = field(default="epoch", metadata={"help": "The evaluation strategy to adopt during training."})
+    save_strategy: str = field(default="epoch", metadata={"help": "The checkpoint save strategy to adopt during training."})
 
 # initialize logging, seed, argparse...
 parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingConfig))
