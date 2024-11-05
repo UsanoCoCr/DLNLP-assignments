@@ -1,1 +1,10 @@
-python train.py --model_name_or_path bert-base-uncased --dataset_name 'restaurant_sup', 'acl_sup', 'agnews_sup'
+# before every tuning, change num_labels, seed, run_name
+CUDA_VISIBLE_DEVICES=2 python train.py --model_name_or_path ./bert_base_uncased --dataset_name 'restaurant_sup'
+CUDA_VISIBLE_DEVICES=2 python train.py --model_name_or_path ./bert_base_uncased --dataset_name 'acl_sup'
+CUDA_VISIBLE_DEVICES=2 python train.py --model_name_or_path ./bert_base_uncased --dataset_name 'agnews_sup'
+CUDA_VISIBLE_DEVICES=2 python train.py --model_name_or_path ./roberta_base --dataset_name 'restaurant_sup'
+CUDA_VISIBLE_DEVICES=2 python train.py --model_name_or_path ./roberta_base --dataset_name 'acl_sup'
+CUDA_VISIBLE_DEVICES=2 python train.py --model_name_or_path ./roberta_base --dataset_name 'agnews_sup'
+CUDA_VISIBLE_DEVICES=2 python train.py --model_name_or_path ./scibert_scivocab_uncased --dataset_name 'restaurant_sup'
+CUDA_VISIBLE_DEVICES=2 python train.py --model_name_or_path ./scibert_scivocab_uncased --dataset_name 'acl_sup'
+CUDA_VISIBLE_DEVICES=2 python train.py --model_name_or_path ./scibert_scivocab_uncased --dataset_name 'agnews_sup'
