@@ -1,5 +1,4 @@
 import logging
-from datasets import load_dataset
 from dataclasses import dataclass, field, asdict
 from transformers import (
     AutoConfig,
@@ -15,7 +14,6 @@ import numpy as np
 import torch
 import wandb
 import os
-from typing import Optional
 from sklearn.metrics import f1_score, accuracy_score
 
 from dataHelper import get_dataset

@@ -1,9 +1,7 @@
 import logging
-from datasets import load_dataset
 from dataclasses import dataclass, field, asdict
 from transformers import (
     AutoConfig,
-    AutoModelForSequenceClassification,
     AutoTokenizer,
     Trainer,
     TrainingArguments,
@@ -12,17 +10,14 @@ from transformers import (
 )
 from transformers import set_seed
 from adapters import AutoAdapterModel, BnConfig
+from adapters import AdapterTrainer
 import numpy as np
 import torch
 import wandb
 import os
-from typing import Optional
 from sklearn.metrics import f1_score, accuracy_score
 
 from dataHelper import get_dataset
-import os
-os.environ["CUDA_LAUNCH_BLOCKING"] = "1"
-os.environ["TORCH_USE_CUDA_DSA"] = "1"
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using {device} device")
@@ -91,8 +86,6 @@ dataset = get_dataset(data_args.dataset_name, '<sep>')
 print(f"Loading model {model_args.model_name_or_path}")
 tokenizer = AutoTokenizer.from_pretrained(model_args.model_name_or_path, local_files_only=True)
 config = AutoConfig.from_pretrained(model_args.model_name_or_path, num_labels=model_args.num_labels, local_files_only=True)
-# model = AutoModelForSequenceClassification.from_pretrained(model_args.model_name_or_path, config=config, local_files_only=True)
-
 model = AutoAdapterModel.from_pretrained(model_args.model_name_or_path, config=config, local_files_only=True)
 adapter_name = "res_adapter"
 config = BnConfig(mh_adapter=True, output_adapter=True, reduction_factor=16, non_linearity="relu")
@@ -114,7 +107,7 @@ dataset["test"] = dataset["test"].map(preprocess_function, batched=True)
 data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
 
 # train the model
-trainer = Trainer(
+trainer = AdapterTrainer(
     model=model,
     args=TrainingArguments(**asdict(training_args)),
     train_dataset=dataset["train"],
